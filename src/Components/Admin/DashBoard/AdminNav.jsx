@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Modal from "../Manegment/AddUserModal";
+import { useDispatch } from "react-redux";
+import { userLogout } from "../../../Redux/User/Actions/userLoginAction";
 
 const AdminNav = () => {
+
+  const dispatch = useDispatch();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const onAddUser = () => {
@@ -10,7 +15,8 @@ const AdminNav = () => {
   };
 
   const onLogout = () => {
-    console.log("Logout clicked");
+    dispatch(userLogout());
+    
   };
 
   const closeModal = () => {

@@ -1,35 +1,26 @@
-import React, { useState } from "react";
+import React from "react";
+import { useFormik } from "formik";
+import generateValidationSchema from "../../../Redux/generateUserValidationSchema";
+import { useDispatch } from "react-redux";
+import { addNewUser } from "../../../Redux/Admin/Actions/addUserAction";
 
-function AddUserModal({ handleModalClose, handleAddUser }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+function AddUserModal({ handleModalClose }) {
+  const dispatch = useDispatch();
 
-  const handleAddUserClick = () => {
-    // You can perform validation here before adding the user
-    // For simplicity, this example assumes all fields are required
-    if (
-      name.trim() === "" ||
-      email.trim() === "" ||
-      password.trim() === "" ||
-      confirmPassword.trim() === ""
-    ) {
-      alert("Please fill in all fields.");
-    } else if (password !== confirmPassword) {
-      alert("Passwords do not match.");
-    } else {
-      // Call the parent component function to add the user
-      handleAddUser({ name, email, password });
-
-      // Reset the input fields and close the modal
-      setName("");
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
+  const formik = useFormik({
+    initialValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    validationSchema: generateValidationSchema("registration"),
+    onSubmit: (userDetails) => {
+      dispatch(addNewUser(userDetails));
+      formik.resetForm();
       handleModalClose();
-    }
-  };
+    },
+  });
 
   return (
     <div
@@ -40,25 +31,32 @@ function AddUserModal({ handleModalClose, handleAddUser }) {
         }
       }}
     >
-      <div
-        className="bg-gray-600 w-[400px] h-[450px] p-8 rounded shadow-2xl text-center flex flex-col items-center"
-        >
-        <form>
+      <div className="bg-gray-600 w-[400px] h-[450px] p-8 rounded shadow-2xl text-center flex flex-col items-center">
+        <form onSubmit={formik.handleSubmit}>
           <div className="mb-4">
             <label
-              htmlFor="name"
+              htmlFor="username"
               className="block text-gray-200 text-sm font-bold mb-2"
             >
               Name
             </label>
             <input
               type="text"
-              id="name"
-              className="w-full border rounded px-3 py-2"
+              id="username"
+              name="username"
+              className={`w-full border rounded px-3 py-2 text-black ${
+                formik.errors.username ? "border-red-500" : ""
+              }`}
               placeholder="Enter your name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={formik.values.username}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
             />
+            {formik.touched.username && formik.errors.username && (
+              <div className="text-red-500 text-sm">
+                {formik.errors.username}
+              </div>
+            )}
           </div>
           <div className="mb-4">
             <label
@@ -70,11 +68,18 @@ function AddUserModal({ handleModalClose, handleAddUser }) {
             <input
               type="email"
               id="email"
-              className="w-full border rounded px-3 py-2"
+              name="email"
+              className={`w-full border rounded px-3 py-2 text-black ${
+                formik.errors.email ? "border-red-500" : ""
+              }`}
               placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formik.values.email}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
             />
+            {formik.touched.email && formik.errors.email && (
+              <div className="text-red-500 text-sm">{formik.errors.email}</div>
+            )}
           </div>
           <div className="mb-4">
             <label
@@ -86,11 +91,20 @@ function AddUserModal({ handleModalClose, handleAddUser }) {
             <input
               type="password"
               id="password"
-              className="w-full border rounded px-3 py-2"
+              name="password"
+              className={`w-full border rounded px-3 py-2 text-black ${
+                formik.errors.password ? "border-red-500" : ""
+              }`}
               placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formik.values.password}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
             />
+            {formik.touched.password && formik.errors.password && (
+              <div className="text-red-500 text-sm">
+                {formik.errors.password}
+              </div>
+            )}
           </div>
           <div className="mb-4">
             <label
@@ -102,17 +116,26 @@ function AddUserModal({ handleModalClose, handleAddUser }) {
             <input
               type="password"
               id="confirmPassword"
-              className="w-full border rounded px-3 py-2"
+              name="confirmPassword"
+              className={`w-full border rounded px-3 py-2 text-black ${
+                formik.errors.confirmPassword ? "border-red-500" : ""
+              }`}
               placeholder="Confirm your password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              value={formik.values.confirmPassword}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
             />
+            {formik.touched.confirmPassword &&
+              formik.errors.confirmPassword && (
+                <div className="text-red-500 text-sm">
+                  {formik.errors.confirmPassword}
+                </div>
+              )}
           </div>
           <div className="flex justify-center mt-3">
             <button
-              type="button"
+              type="submit"
               className="bg-blue-500 text-white px-4 py-2 rounded"
-              onClick={handleAddUserClick}
             >
               Add User
             </button>

@@ -1,7 +1,16 @@
 import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { userLogout } from "../../../Redux/User/Actions/userLoginAction";
 
-function Navbar({ logined, flag = false }) {
+function Navbar({ flag = false }) {
+  const role = useSelector((state) => state.userReducer.user.role);
+  const dispatch = useDispatch();
+
+  const logout = () => {
+    dispatch(userLogout());
+  };
+
   return (
     <>
       <div className="flex items-center justify-between p-4 bg-slate-300">
@@ -16,16 +25,26 @@ function Navbar({ logined, flag = false }) {
         <div>
           {flag ? (
             <Link to="/login">
-              <button className="bg-red-500 text-white px-4 py-2 rounded">
+              <button
+                onClick={logout}
+                className="bg-red-500 text-white px-4 py-2 rounded"
+              >
                 LogOut
               </button>
             </Link>
-          ) : logined ? (
-            <Link to="/profile">
-              <button className="bg-red-500 text-white px-4 py-2 rounded">
-                Profile
-              </button>
-            </Link>
+          ) : role !== null ? (
+            <div className="flex justify-between w-[180px] mr-4">
+              <Link to="/profile">
+                <button className="bg-red-500 text-white px-4 py-2 rounded">
+                  Profile
+                </button>
+              </Link>
+              <Link to="/login">
+                <button onClick={logout} className="bg-red-500 text-white px-4 py-2 rounded">
+                  LogOut
+                </button>
+              </Link>
+            </div>
           ) : (
             <Link to="/login">
               <button className="bg-red-500 text-white px-4 py-2 rounded">

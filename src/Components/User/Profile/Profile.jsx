@@ -1,21 +1,20 @@
 import React, { useState } from "react";
 import Modal from "./Modal";
 import Navbar from "../Home/Navbar";
+import { useDispatch, useSelector } from "react-redux";
+import { storage } from "../../../Config/Firebase/firebaseConfig";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { updateProfilePic,removeProfilePic } from "../../../Redux/User/Actions/userProfileAction";
+import axiosInstance from "../../../Config/Axios/axiosConfig";
 
 function Profile() {
-  const userDetails = {
-    name: "Amrithesh",
-    email: "amrithesh@example.com",
-  };
-
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [logined,setLogined] = useState(true);
-  const [currentImage, setCurrentImage] = useState(null);
+  const state = useSelector((state) => state.userReducer);
+  const dispatch = useDispatch();
+  const username = state.user.username;
+  const email = state.user.email;
 
   const handleImageClick = () => {
-    setCurrentImage(
-      "https://cdn.pixabay.com/photo/2023/09/22/12/18/profile-8268938_640.png"
-    ); // Replace with your actual image URL
     setIsModalOpen(true);
   };
 
@@ -25,31 +24,56 @@ function Profile() {
 
   const handleRemoveImage = () => {
     console.log("Image removed");
+
+    axiosInstance.get(`/user/remove-image?email=${email}`,{
+      "Content-Type": "application/json",
+    });
+
+    dispatch(removeProfilePic())    
     handleCloseModal();
   };
 
-  const handleUploadImage = () => {
-    console.log("Image uploaded");
-    handleCloseModal();
+  const handleUploadImage = async (file) => {
+    const image = file.target.files[0];
+
+    try {
+      if (!image) {
+        throw new Error("Please select an image.");
+      }
+
+      const storageRef = ref(storage, `/product-image/${image?.name}`);
+
+      const snapshot = await uploadBytes(storageRef, image);
+
+      const url = await getDownloadURL(storageRef);
+
+      dispatch(updateProfilePic(url));
+
+      axiosInstance.post(`/user/updatePic?email=${email}`, url, {
+        "Content-Type": "application/json",
+      });
+
+    } catch (error) {
+      console.error("Error uploading image to Firebase:", error);
+    }
   };
 
   return (
     <>
-    <Navbar logined={logined} flag={true}/>
+      <Navbar flag={true} />
       <div className="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
         <img
-          src="https://cdn.pixabay.com/photo/2023/09/22/12/18/profile-8268938_640.png"
-          alt="Profile"
+          src={state.user.url}
+          alt="User Profile Image"
           className="w-52 h-52 rounded-full mb-4 cursor-pointer"
           onClick={handleImageClick}
         />
+
         <div className="bg-white p-8 rounded shadow-md w-full md:w-2/3 lg:w-1/2 xl:w-1/3 text-center">
-          <h1 className="text-2xl font-bold mb-4">{userDetails.name}</h1>
+          <h1 className="text-2xl font-bold mb-4">{username}</h1>
 
           <div className="mb-6">
-            <p className="text-gray-700 font-bold">
-              Email: {userDetails.email}
-            </p>
+            <p className="text-gray-700 font-bold">Email: {email}</p>
             <p className="text-gray-700">
               type and scrambled it to make a type specimen book. It has
               survived not only five centuries, but also the leap into
@@ -60,7 +84,7 @@ function Profile() {
 
         {isModalOpen && (
           <Modal
-            currentImage={currentImage}
+            currentImage={state.user.url}
             handleCloseModal={handleCloseModal}
             handleRemoveImage={handleRemoveImage}
             handleUploadImage={handleUploadImage}
